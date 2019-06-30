@@ -28,40 +28,33 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 
   Future<List<int>> makeReceiptImage() async {
+    // load avatar image
     ByteData imageData = await rootBundle.load('assets/av.png');
     List<int> bytes = Uint8List.view(imageData.buffer);
-    var srcImage = Images.decodeImage(bytes);
+    var avatarImage = Images.decodeImage(bytes);
 
+    //load marker image 
     imageData = await rootBundle.load('assets/ma.png');
     bytes = Uint8List.view(imageData.buffer);
-    var dstImage = Images.decodeImage(bytes);
+    var markerImage = Images.decodeImage(bytes);
 
-    srcImage = Images.copyResize(srcImage,
-        width: dstImage.width ~/ 1.1, height: dstImage.height ~/ 1.4);
+    //resize the avatar image to fit inside the marker image
+    avatarImage = Images.copyResize(avatarImage,
+        width: markerImage.width ~/ 1.1, height: markerImage.height ~/ 1.4);
+    
+
     var radius = 90;
-    int originX = srcImage.width ~/ 2, originY = srcImage.height ~/ 2; // origin
-
+    int originX = avatarImage.width ~/ 2, originY = avatarImage.height ~/ 2;
+    
+    //draw the avatar image cropped as a circle inside the marker image
     for (int y = -radius; y <= radius; y++)
       for (int x = -radius; x <= radius; x++)
         if (x * x + y * y <= radius * radius)
-          dstImage.setPixelSafe(originX + x+8, originY + y+10,
-              srcImage.getPixelSafe(originX + x, originY + y));
-    // else
-    //   srcImage.setPixelSafe(originX + x, originY + y, Color(0xFFFFFFFF).value);
+          markerImage.setPixelSafe(originX + x+8, originY + y+10,
+              avatarImage.getPixelSafe(originX + x, originY + y));
 
-    // TODO: WRITE ON TO THE IMAGE
-    // Images.Image mergeImage = Images.drawImage(dstImage, srcImage,
-    //     dstX: 8,
-    //     dstY: 10,
-    //     srcX: 0,
-    //     srcY: 0,
-    //     srcW: srcImage.width,
-    //     srcH: srcImage.height);
 
-    // Write it to disk as a different jpeg
-    var new_image = Images.encodePng(dstImage);
-
-    return new_image;
+    return Images.encodePng(markerImage);
   }
 }
 
